@@ -3,21 +3,6 @@ title: ""
 format: html
 filters:
   - shinylive
-output:
-  html_document:
-    code_folding: hide
-    code_download: false
-    toc: false
-    toc_depth: 2
-    toc_float: true
-    number_sections: false
-    theme: united
-    highlight: tango
-    css: styles.css
-    self_contained: true
-    mathjax: default
-    df_print: paged
-    code_overflow: scroll
 ---
 
 ```{shinylive-python}
