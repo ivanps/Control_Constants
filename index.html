@@ -72,20 +72,31 @@ ul.task-list li input[type="checkbox"] {
 #|   Please set `embed-resources: false` in your metadata.
 #| standalone: true
 
-from shiny import *
+from shiny.express import input, render, ui
+from scipy.stats import norm
+from scipy.integrate import quad
+from scipy.special import gammaln
+import numpy as np
 
-app_ui = ui.page_fluid(
-    ui.input_slider("n", "N", 0, 100, 40),
-    ui.output_text_verbatim("txt"),
-)
+ui.h1("Shewhart control charts constants")
+ui.input_numeric("n", "Select the group sample size:", 5, min=2, max=100)
 
-def server(input, output, session):
-    @output
-    @render.text
-    def txt():
-        return f"The value of n*2 is {input.n() * 2}"
+def compute_d2(n):
+    def integrand(x):
+        return 1 - (1 - norm.cdf(x)) ** n - (norm.cdf(x)) ** n
 
-app = App(app_ui, server)</code></pre>
+    result, _ = quad(integrand, -np.inf, np.inf)
+    return result
+
+def compute_c4(n):
+    # To avoid overflow, use gammaln() instead of gamma()
+    # Compute the exponential of the difference of the logs
+    gamma_ratio = np.exp(gammaln(n / 2) - gammaln((n - 1) / 2))
+    return np.sqrt(2 / (n - 1)) * gamma_ratio
+
+@render.code
+def txt():
+    return f"c4 = {compute_c4(input.n())}\nd2 = {compute_d2(input.n())}"</code></pre>
 
 </main>
 <!-- /main column -->
