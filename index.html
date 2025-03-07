@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Constants in Control Charts</title>
+<title>index</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -48,29 +48,21 @@ ul.task-list li input[type="checkbox"] {
 
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">Constants in Control Charts</h1>
-</div>
 
 
 
-<div class="quarto-title-meta">
-
-    
-  
-    
-  </div>
-  
-
-
-</header>
-
-
+<style>
+  .shinylive-container {
+    width: 100%;
+    height: 300px; /* Adjust this value as needed */
+  }
+</style>
+<div class="shinylive-container">
 <pre class="shinylive-python" data-engine="python"><code>#| '!! shinylive warning !!': |
 #|   shinylive does not work in self-contained HTML documents.
 #|   Please set `embed-resources: false` in your metadata.
 #| standalone: true
+#| frameHeight: 600
 
 from shiny.express import input, render, ui
 from scipy.stats import norm
@@ -89,14 +81,27 @@ def compute_d2(n):
     return result
 
 def compute_c4(n):
-    # To avoid overflow, use gammaln() instead of gamma()
-    # Compute the exponential of the difference of the logs
     gamma_ratio = np.exp(gammaln(n / 2) - gammaln((n - 1) / 2))
     return np.sqrt(2 / (n - 1)) * gamma_ratio
+    
+def f(n, x, y):
+    Phi_x = norm.cdf(x)
+    Phi_y = norm.cdf(y)
+    return 1 - Phi_y**n - (1 - Phi_x) ** n + (Phi_y - Phi_x) ** n
+    
+def inner_integral(n, y):
+    result, _ = quad(lambda x: f(n, x, y), -np.inf, y)
+    return result
+    
+def compute_d3(n):
+    outer_integral_value, _ = quad(lambda y: inner_integral(n, y), -np.inf, np.inf)
+    result = np.sqrt(2 * outer_integral_value - compute_d2(n)**2)
+    return result
 
 @render.code
 def txt():
-    return f"c4 = {compute_c4(input.n())}\nd2 = {compute_d2(input.n())}"</code></pre>
+    return f"c4 = {compute_c4(input.n())}\nd2 = {compute_d2(input.n())}\nd3 = {compute_d3(input.n())}"</code></pre>
+</div>
 
 </main>
 <!-- /main column -->
